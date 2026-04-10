@@ -1,60 +1,38 @@
-// Nexus PWA Service Worker
-// In production, next-pwa generates an optimized SW.
-// This is a fallback for development / manual registration.
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
 
-const CACHE_NAME = "nexus-pwa-v1";
-const OFFLINE_URL = "/";
+export const metadata: Metadata = {
+  title: "Nexus PWA",
+  description: "PWA with Local Database, QR Scanner & Bluetooth",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Nexus",
+  },
+};
 
-const PRECACHE_URLS = [
-  "/",
-  "/manifest.json",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-];
+export const viewport: Viewport = {
+  themeColor: "#00e5a0",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
 
-// Install: cache essential assets
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <head>
+        <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+      </head>
+      <body>{children}</body>
+    </html>
   );
-  self.skipWaiting();
-});
-
-// Activate: clean old caches
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    )
-  );
-  self.clients.claim();
-});
-
-// Fetch: network-first with cache fallback
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Cache successful responses
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, clone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Fallback to cache
-        return caches.match(event.request).then((cached) => {
-          return cached || caches.match(OFFLINE_URL);
-        });
-      })
-  );
-});
+}
