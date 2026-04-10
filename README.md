@@ -1,4 +1,4 @@
-# Nexus PWA
+# PWA
 
 A Next.js Progressive Web App with **Local Database**, **QR Code Scanner**, and **Bluetooth** capabilities.
 
